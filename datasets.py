@@ -1,6 +1,7 @@
 from torch.utils.data import Dataset
 from keras.preprocessing import text
 from keras.preprocessing import sequence
+import numpy as np
 
 
 class MyDataset(Dataset):
@@ -12,16 +13,20 @@ class MyDataset(Dataset):
         with open(self.data_path, 'r') as f:
             sents = f.read().splitlines()
 
-        tokenizer = text.Tokenizer()
-        tokenizer.fit_on_texts(sents)
-        self.word2id = tokenizer.word_index
+        self.sents = [sent.split() for sent in sents]
+
+        self.word2id = dict()
+        i = 1
+        for sent in self.sents:
+            for word in sent:
+                if word not in self.word2id:
+                    self.word2id[word] = i
+                    i += 1
         self.word2id['<pad>'] = 0
-        self.id2word = {v: k for k, v in self.word2id.items()}
+        self.id2word = {v: k for (k, v) in self.word2id.items()}
+
         self.vocab_size = len(self.word2id)
 
-        print(self.word2id)
-
-        self.sents = [sent.split() for sent in sents]
         self.sents = [[self.word2id[word] for word in sent]
                       for sent in self.sents]
 
