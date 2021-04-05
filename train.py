@@ -11,7 +11,8 @@ nll_loss = nn.NLLLoss()
 
 
 class Trainer():
-    def __init__(self, data_path="./smalltrain.txt", label_path="./smalllabel.txt",
+    def __init__(self, data_path="./data/small_traintext.txt",
+                 label_path="./data/small_trainlabel.txt",
                  save_folder="./dumps/", num_categories=4, batch_size=64,
                  length=32, learning_rate=0.001, embedding_size=16,
                  hidden_dim=16, n_layers=1, epochs=100):
@@ -29,15 +30,15 @@ class Trainer():
         self.epochs = epochs
         self.save_folder = save_folder
 
-        self.model = RNNModel(self.vocab_size, self.embedding_size,
-                              self.num_categories, self.hidden_dim,
-                              self.n_layers
+        self.model = RNNModel(
+            self.vocab_size, self.embedding_size,
+            self.num_categories, self.hidden_dim,
+            self.n_layers,
         )
 
         self.optimizer = optim.Adam(
             self.model.parameters(), lr=self.learning_rate
         )
-
 
     def valid(self, valid_dataset):
         self.model.eval()
@@ -106,7 +107,27 @@ class Trainer():
             "word2id": word2id
         }, PATH)
 
+    def infere(input_tensor):
+        # infering
+        self.model.eval()
+        batch_size = input_tensor.shape[0]
+        hidden = self.model.init_hidden(batch_size)
+        output, _ = self.model(input_tensor, hidden)
+        prediction = output.argmax(dim=-1)
+        return prediction
+
+    def restore(tokens, punct):
+        id2word = self.train_dataset.id2word
+        convert = {0: '', 1: ',', 2: '.', 3: ''}
+        seq = [id2word[token]+convert[punct[i]]
+               for i, token in enumerate(tokens)]
+        seq = ' '.join(seq)
+        return seq
+
 
 if __name__ == "__main__":
-    trainer = Trainer()
-    trainer.train(trainer.train_dataset)
+    trainer = Trainer(epochs=500)
+
+    test_dataset = MyDataset("./data/small_validtext.txt",
+                             "./data/small_validlabel.txt")
+    trainer.train(test_dataset)
