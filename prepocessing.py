@@ -86,13 +86,13 @@ def create_label(text):
 
 
 
-def preprocessing_train_data(RAW_PATH = './data/Data_byADuc.txt', IN_TEXT_PATH = './demo_data/text.txt', LABEL_PATH = './demo_data/label.txt):
+def preprocessing_train_data(RAW_PATH = './data/Data_byADuc.txt', IN_TEXT_PATH = './demo_data/text.txt', LABEL_PATH = './demo_data/label.txt'):
     # start processing
     with open(RAW_PATH, 'r') as f:
-        texts = f.read().splitlines()
+        lines = f.read().splitlines()
 
 
-    texts = cleaning(texts)
+    lines = cleaning(lines[:1000])
     texts, labels = [], []
     for text in lines:
         in_text, label = create_label(text)
@@ -113,3 +113,5 @@ def preprocessing_train_data(RAW_PATH = './data/Data_byADuc.txt', IN_TEXT_PATH =
             f.write('\n')
 
 
+
+preprocessing_train_data()
