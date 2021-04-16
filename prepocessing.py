@@ -92,7 +92,7 @@ def preprocessing_train_data(RAW_PATH = './data/Data_byADuc.txt', IN_TEXT_PATH =
         lines = f.read().splitlines()
 
 
-    lines = cleaning(lines[:1000])
+    lines = cleaning(lines[:100000])
     texts, labels = [], []
     for text in lines:
         in_text, label = create_label(text)

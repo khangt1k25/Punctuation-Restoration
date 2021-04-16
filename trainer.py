@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 from datasets import MyDataset, TestDataset, dataset_batch_iter
-from models import RNNModel
+from models import RNNModel, GRUModel
 import numpy as np
 import argparse
 
@@ -101,8 +101,8 @@ class Trainer():
 
 if __name__ == '__main__':
     train_dataset = MyDataset('./demo_data/text.txt', './demo_data/label.txt')
-
-    model = RNNModel(
+    
+    model = GRUModel(
         vocab_size=train_dataset.vocab_size,
         embedding_size=embedding_size,
         output_size=4, 
