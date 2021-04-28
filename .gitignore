@@ -8,6 +8,7 @@ data/*
 .vscode/*
 dumps/*
 demo_data/*
+my_runs/*
 # C extensions
 *.so
 

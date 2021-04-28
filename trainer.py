@@ -2,44 +2,33 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
-from datasets import MyDataset, TestDataset, dataset_batch_iter
-from models import RNNModel, GRUModel
 import numpy as np
-import argparse
+from torch.utils.tensorboard import SummaryWriter
+from datasets import dataset_batch_iter
 
 nll_loss = nn.NLLLoss()
 
 
-parser = argparse.ArgumentParser()
-
-parser.add_argument('--embedding_size', type=int, default=16, help='embedding dim')
-parser.add_argument('--hidden_dim', type=int, default=16, help='hidden dim state of block RNN')
-parser.add_argument('--lr', type=float, default=0.0001, help='ADAM learning rate ')
-parser.add_argument('--length', type=int, default=32, help='max length of a sentence')
-opt = parser.parse_args()
-
-length = opt.length
-lr = opt.lr 
-embedding_size = opt.embedding_size
-hidden_dim = opt.hidden_dim
 
 class Trainer():
-    def __init__(self, model, optimizer, device):
+    def __init__(self, model, optimizer, device, save_model_path, name_log_dir):
         self.device = device
         self.model = model.to(self.device)
         self.optimizer = optimizer
-        self.batch_size = 64
-        self.num_categories = 4
-        self.save_path = './dumps/model.pt'
-        self.length = length
+        self.num_categories = self.model.output_size
+        self.save_model_path = save_model_path
+        self.writer = SummaryWriter(log_dir=name_log_dir)
 
-    def train(self, train_dataset, test_dataset, start_epoch, end_epoch):
+    def train(self, train_dataset, test_dataset, batch_size, start_epoch, end_epoch):
+
         # training
-        for epoch in range(start_epoch+1, end_epoch+1):
+        for epoch in range(start_epoch, end_epoch+1):
             self.model.train()
-            hidden = self.model.init_hidden(self.batch_size)
+            hidden = self.model.init_hidden(batch_size)
             train_loss = 0.
-            for batch, data in enumerate(dataset_batch_iter(train_dataset, self.batch_size)):
+            num_batch = 0
+            for batch, data in enumerate(dataset_batch_iter(train_dataset, batch_size)):
+                
                 input_tensor = torch.Tensor(data['data']).type(torch.LongTensor).to(self.device)
                 target_tensor = torch.Tensor(data['label']).type(torch.LongTensor).to(self.device) 
                 
@@ -53,17 +42,31 @@ class Trainer():
                 self.optimizer.step()
 
                 train_loss += loss.item()
+                num_batch = batch+1
             
-            train_loss /= (batch+1)
+            
+            
 
             if epoch % 10 == 0:
+                ## shuffle evaluate ??
                 test_loss, test_accuracy = self.evaluate(test_dataset)
                 train_loss, train_accuracy = self.evaluate(train_dataset)
-                print(
-                    f"Epoch {epoch} -- train loss: {train_loss} -- test loss: {test_loss} -- train acc: {train_accuracy} -- test acc: {test_accuracy}"
-                )
+                
 
-        # saving the last
+                self.writer.add_scalars('Loss',{"train_loss": train_loss, "test_loss": test_loss}, epoch)
+                self.writer.add_scalars("Accuracy", {"train _acc": train_accuracy, "test_acc":test_accuracy}, epoch)
+
+                print(f"\nEpoch {epoch} -- train loss: {train_loss} -- test loss: {test_loss} -- train acc: {train_accuracy} -- test acc: {test_accuracy}\n")
+
+                # saving the last
+                self.saving(train_dataset, epoch)
+                
+            else:
+                train_loss /= num_batch
+                print(f"\nEpoch {epoch} -- train loss: {train_loss}\n")
+    
+    def saving(self, train_dataset, epoch):
+        filename = self.save_model_path+str(epoch)+'.pt'
         id2word = train_dataset.id2word
         word2id = train_dataset.word2id
         torch.save({
@@ -71,15 +74,19 @@ class Trainer():
             "optimizer_state_dict": self.optimizer.state_dict(),
             "id2word": id2word,
             "word2id": word2id
-        }, self.save_path)
+        }, filename)
+        print(f'\nSaving model successfully at epoch {epoch}\n')
     
     def evaluate(self, valid_dataset):
+        batch_size = 64
         self.model.eval()
         test_loss = 0.
-        hidden = self.model.init_hidden(self.batch_size)
+        hidden = self.model.init_hidden(batch_size)
 
         correct = 0
-        for batch, data in enumerate(dataset_batch_iter(valid_dataset, self.batch_size)):
+      
+        for batch, data in enumerate(dataset_batch_iter(valid_dataset, batch_size)):
+    
             input_tensor = torch.Tensor(data['data']).type(torch.LongTensor).to(self.device)
             target_tensor = torch.Tensor(data['label']).type(torch.LongTensor).to(self.device)
 
@@ -92,33 +99,24 @@ class Trainer():
             test_loss += loss.item()
 
             correct += torch.sum(prediction == target_tensor).item()
-        
-        
-        accuracy = correct/(self.batch_size*self.length*(batch+1))
+
+
+        length = valid_dataset.length
+
+        #print("batch=", batch)
+        accuracy = correct/(batch_size*length*(batch+1))
 
         return test_loss, accuracy
         
-
-if __name__ == '__main__':
-    train_dataset = MyDataset('./demo_data/text.txt', './demo_data/label.txt')
-    
-    model = GRUModel(
-        vocab_size=train_dataset.vocab_size,
-        embedding_size=embedding_size,
-        output_size=4, 
-        hidden_dim=hidden_dim,
-        n_layers=1,
-    )
-    optimizer = optim.Adam(
-        model.parameters(), lr=lr
-    )
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    trainer = Trainer(model, optimizer, device)
-
-    
-
-    test_dataset = TestDataset('./demo_data/testtext.txt', label_path='./demo_data/testlabel.txt', word2id=train_dataset.word2id, id2word=train_dataset.id2word)
-
-    
-    trainer.train(train_dataset, test_dataset, start_epoch=0, end_epoch=500)
-
+    def load(self, epoch):
+        try:
+            filename = self.save_model_path+str(epoch)+'.pt'
+            
+            checkpoint = torch.load(filename)
+            
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            
+            print(f'\n Loading model successfully at epoch {epoch}\n')
+        except:
+            print(f'\n Loading model fail at epoch {epoch}\n')

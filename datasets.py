@@ -5,10 +5,12 @@ import numpy as np
 
 
 class MyDataset(Dataset):
-    def __init__(self, data_path, label_path):
+    def __init__(self, data_path, label_path, length):
 
+        
         self.data_path = data_path
         self.label_path = label_path
+        self.length = length
 
         with open(self.data_path, 'r') as f:
             sents = f.read().splitlines()
@@ -31,14 +33,14 @@ class MyDataset(Dataset):
                       for sent in self.sents]
 
         self.sents = sequence.pad_sequences(
-            self.sents, maxlen=32, padding="post")
+            self.sents, maxlen=self.length, padding="post")
 
         with open(self.label_path, 'r') as f:
             labels = f.read().splitlines()
 
         self.labels = [list(map(int, label.split())) for label in labels]
         self.labels = sequence.pad_sequences(
-            self.labels, maxlen=32, padding="post", value=3)
+            self.labels, maxlen=self.length, padding="post", value=3)
 
     def __getitem__(self, index):
 
@@ -49,12 +51,13 @@ class MyDataset(Dataset):
 
 
 class TestDataset(Dataset):
-    def __init__(self, data_path, label_path, word2id, id2word):
+    def __init__(self, data_path, label_path, length, word2id, id2word):
 
         self.data_path = data_path
         self.label_path = label_path
         self.word2id = word2id
         self.id2word = id2word
+        self.length = length
 
         with open(self.data_path, 'r') as f:
             sents = f.read().splitlines()
@@ -64,14 +67,14 @@ class TestDataset(Dataset):
         self.sents = [[self.word2id[word] if word in self.word2id else 0 for word in sent] for sent in self.sents]
 
         self.sents = sequence.pad_sequences(
-            self.sents, maxlen=32, padding="post")
+            self.sents, maxlen=self.length, padding="post")
 
         with open(self.label_path, 'r') as f:
             labels = f.read().splitlines()
 
         self.labels = [list(map(int, label.split())) for label in labels]
         self.labels = sequence.pad_sequences(
-            self.labels, maxlen=32, padding="post", value=3)
+            self.labels, maxlen=self.length, padding="post", value=3)
 
     def __getitem__(self, index):
 
