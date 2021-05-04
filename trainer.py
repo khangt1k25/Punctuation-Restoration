@@ -45,7 +45,11 @@ class Trainer():
                 num_batch = batch+1
             
             
+            test_matrix, test_loss, test_accuracy = self.cal_score(test_dataset)
+            train_matrix, train_loss, train_accuracy = self.cal_score(train_dataset)
             
+            print(test_matrix)
+            print(train_matrix)
 
             if epoch % 10 == 0:
                 ## shuffle evaluate ??
@@ -120,3 +124,33 @@ class Trainer():
             print(f'\n Loading model successfully at epoch {epoch}\n')
         except:
             print(f'\n Loading model fail at epoch {epoch}\n')
+    
+    
+    def cal_score(self, valid_dataset):
+        self.model.eval()
+        test_loss = 0.
+        batch_size = 64
+        hidden = self.model.init_hidden(batch_size)
+
+        cnf_matrix = np.zeros((4, 4))
+        for batch, data in enumerate(dataset_batch_iter(valid_dataset, batch_size)):
+            input_tensor = torch.tensor(data['data']).type(torch.LongTensor).to(self.device)
+            target_tensor = torch.tensor(data['label']).type(torch.LongTensor).to(self.device)
+
+            output, hidden = self.model(input_tensor, hidden)
+            prediction = output.argmax(dim=-1)
+
+            loss = nll_loss(output.view(-1, self.num_categories),
+                            target_tensor.view(-1))
+
+            test_loss += loss.item()
+
+            prediction = prediction.cpu().numpy()
+            target_numpy = target_tensor.cpu().numpy()
+
+            for i in range (prediction.shape[0]):
+                cnf_matrix[target_numpy[i], prediction[i]] += 1
+            
+        accuracy = np.diagonal(cnf_matrix).sum()/cnf_matrix.sum()
+
+        return cnf_matrix, test_loss, accuracy
