@@ -5,7 +5,7 @@ from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 import argparse
 from datasets import MyDataset, TestDataset, dataset_batch_iter
-from models import RNNModel, GRUModel
+from models import RNNModel, GRUModel, BiLSTMModel
 from trainer import Trainer
 
 
@@ -13,18 +13,18 @@ from trainer import Trainer
 
 parser = argparse.ArgumentParser()
 ## config for model
-parser.add_argument('--model', type=str, default='RNN', help="RNN or GRU architecture")
+parser.add_argument('--model', type=str, default='RNN', help="RNN or GRU architecture")  # change it GRU or BiLSTM
 parser.add_argument('--n_layer', type=int, default=1, help="Num layers of architecture")
-parser.add_argument('--embedding_size', type=int, default=64, help="Embedding size of a word")
-parser.add_argument('--hidden_dim', type=int, default=16, help="hidden dim state of block RNN")
-parser.add_argument('--output_dim', type=int, default=4, help="output head dim (4 for 0, 1, 2, 3)")
+parser.add_argument('--embedding_size', type=int, default=64, help="Embedding size of a word")  
+parser.add_argument('--hidden_dim', type=int, default=16, help="hidden dim state of block RNN") 
+parser.add_argument('--output_dim', type=int, default=4, help="output head dim (4 for 0, 1, 2, 3)") # do not change
 
 ## config for dataset
-parser.add_argument('--train_text_path', type=str, default='./demo_data/demo_text.txt', help='valid text path')
-parser.add_argument('--train_label_path', type=str, default='./demo_data/demo_label.txt', help='valid label path')
+parser.add_argument('--train_text_path', type=str, default='./demo_data/demo_text.txt', help='train text path')
+parser.add_argument('--train_label_path', type=str, default='./demo_data/demo_label.txt', help='train label path')
 parser.add_argument('--valid_text_path', type=str, default='./demo_data/testtext.txt', help='valid text path')
 parser.add_argument('--valid_label_path', type=str, default='./demo_data/testlabel.txt', help='valid label path')
-parser.add_argument('--length', type=int, default=32, help='max length of a sentence')
+parser.add_argument('--length', type=int, default=52, help='max length of a sentence')       
 
 ## config for optimizer
 parser.add_argument('--lr', type=float, default=0.0001, help='learning rate ')
@@ -34,10 +34,9 @@ parser.add_argument('--betas', type=tuple, default=(0.9, 0.999), help='betas')
 
 ## config for running
 
-parser.add_argument('--batch_size', type=int, default=54, help='Batch size training')
-parser.add_argument('--saved_model_path', type=str, default='./dumps/model', help='saved model path')
-parser.add_argument('--runs_path', type=str, default='./my_runs',help='tensorboard logdir path')
-
+parser.add_argument('--batch_size', type=int, default=64, help='Batch size training')
+parser.add_argument('--saved_model_path', type=str, default='./dumps/', help='saved model path')
+parser.add_argument('--logs_path', type=str, default='./logs', help='logs dir save score')
 
 opt = parser.parse_args()
 nll_loss = nn.NLLLoss()
@@ -57,7 +56,16 @@ if __name__ == '__main__':
             hidden_dim=opt.hidden_dim,
             n_layers=opt.n_layer,
         )
-    elif opt.model == 'RNN':
+    elif opt.model == 'BiLSTM':
+        model = BiLSTMModel(
+            vocab_size=train_dataset.vocab_size,
+            embedding_size=opt.embedding_size,
+            output_size=opt.output_dim, 
+            hidden_dim=opt.hidden_dim,
+            n_layers=opt.n_layer,
+            bidirectional=True
+        )
+    else:
         model = RNNModel(
             vocab_size=train_dataset.vocab_size,
             embedding_size=opt.embedding_size,
@@ -65,8 +73,6 @@ if __name__ == '__main__':
             hidden_dim=opt.hidden_dim,
             n_layers=opt.n_layer,
         )
-    else:
-        print('Invalid type model')
         
     optimizer = optim.Adam(
         model.parameters(), 
@@ -77,8 +83,8 @@ if __name__ == '__main__':
     
     trainer = Trainer(
         model, optimizer, device,
-        save_model_path=opt.saved_model_path,
-        name_log_dir=opt.runs_path
+        save_model_path=opt.saved_model_path+opt.model+'.pt',
+        log_path=opt.logs_path
     )
 
 

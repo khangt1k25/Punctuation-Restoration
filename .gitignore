@@ -9,6 +9,7 @@ data/*
 dumps/*
 demo_data/*
 my_runs/*
+logs/*
 # C extensions
 *.so
 

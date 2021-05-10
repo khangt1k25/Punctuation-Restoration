@@ -11,20 +11,21 @@ nll_loss = nn.NLLLoss()
 
 
 class Trainer():
-    def __init__(self, model, optimizer, device, save_model_path, name_log_dir):
+    def __init__(self, model, optimizer, device, save_model_path, log_path):
         self.device = device
         self.model = model.to(self.device)
         self.optimizer = optimizer
         self.num_categories = self.model.output_size
         self.save_model_path = save_model_path
-        self.writer = SummaryWriter(log_dir=name_log_dir)
+        self.log_path = log_path
+        #self.writer = SummaryWriter(log_dir=name_log_dir)
 
     def train(self, train_dataset, test_dataset, batch_size, start_epoch, end_epoch):
 
         # training
         for epoch in range(start_epoch, end_epoch+1):
             self.model.train()
-            hidden = self.model.init_hidden(batch_size)
+            hidden = self.model.init_hidden(batch_size).to(self.device)
             train_loss = 0.
             num_batch = 0
             for batch, data in enumerate(dataset_batch_iter(train_dataset, batch_size)):
@@ -33,7 +34,9 @@ class Trainer():
                 target_tensor = torch.Tensor(data['label']).type(torch.LongTensor).to(self.device) 
                 
                 output, hidden = self.model(input_tensor, hidden)
+                
                 hidden = Variable(hidden.data, requires_grad=True).to(self.device)
+                
                 loss = nll_loss(output.view(-1, self.num_categories),
                                 target_tensor.view(-1))
                 
@@ -44,23 +47,24 @@ class Trainer():
                 train_loss += loss.item()
                 num_batch = batch+1
             
-            
-            test_matrix, test_loss, test_accuracy = self.cal_score(test_dataset)
-            train_matrix, train_loss, train_accuracy = self.cal_score(train_dataset)
-            
-            print(test_matrix)
-            print(train_matrix)
 
-            if epoch % 10 == 0:
+            if epoch % 5 == 0:
                 ## shuffle evaluate ??
-                test_loss, test_accuracy = self.evaluate(test_dataset)
-                train_loss, train_accuracy = self.evaluate(train_dataset)
+                test_score  = self.cal_score(test_dataset)
+                train_score = self.cal_score(train_dataset)
                 
 
-                self.writer.add_scalars('Loss',{"train_loss": train_loss, "test_loss": test_loss}, epoch)
-                self.writer.add_scalars("Accuracy", {"train _acc": train_accuracy, "test_acc":test_accuracy}, epoch)
+                # self.writer.add_scalars('Loss',{"train_loss": train_loss, "test_loss": test_loss}, epoch)
+                # self.writer.add_scalars("Accuracy", {"train _acc": train_accuracy, "test_acc":test_accuracy}, epoch)
+                
+                with open(self.log_path+'/train_score.txt', 'a') as f:
+                    f.write(str(train_score))
+                    f.write('\n')
+                with open(self.log_path+'/test_score.txt', 'a') as f:
+                    f.write(str(test_score))
+                    f.write('\n')
 
-                print(f"\nEpoch {epoch} -- train loss: {train_loss} -- test loss: {test_loss} -- train acc: {train_accuracy} -- test acc: {test_accuracy}\n")
+                print(f"\nEpoch {epoch} -- train loss: {train_score[0]} -- test loss: {test_score[0]} -- train acc: {train_score[1]} -- test acc: {test_score[1]}\n")
 
                 # saving the last
                 self.saving(train_dataset, epoch)
@@ -70,7 +74,7 @@ class Trainer():
                 print(f"\nEpoch {epoch} -- train loss: {train_loss}\n")
     
     def saving(self, train_dataset, epoch):
-        filename = self.save_model_path+str(epoch)+'.pt'
+        filename = self.save_model_path
         id2word = train_dataset.id2word
         word2id = train_dataset.word2id
         torch.save({
@@ -133,7 +137,9 @@ class Trainer():
         hidden = self.model.init_hidden(batch_size)
 
         cnf_matrix = np.zeros((4, 4))
+        b = 0
         for batch, data in enumerate(dataset_batch_iter(valid_dataset, batch_size)):
+            b+=1
             input_tensor = torch.tensor(data['data']).type(torch.LongTensor).to(self.device)
             target_tensor = torch.tensor(data['label']).type(torch.LongTensor).to(self.device)
 
@@ -150,7 +156,13 @@ class Trainer():
 
             for i in range (prediction.shape[0]):
                 cnf_matrix[target_numpy[i], prediction[i]] += 1
-            
+
+        test_loss /= b
         accuracy = np.diagonal(cnf_matrix).sum()/cnf_matrix.sum()
 
-        return cnf_matrix, test_loss, accuracy
+        precision_1 = cnf_matrix[1][1]/cnf_matrix[:,1].sum()
+        recall_1  = cnf_matrix[1][1]/cnf_matrix[1,:].sum()
+        precision_2 = cnf_matrix[2][2]/cnf_matrix[:,2].sum()
+        recall_2  = cnf_matrix[2][2]/cnf_matrix[2,:].sum()
+
+        return test_loss, accuracy, precision_1, recall_1, precision_2, recall_2
