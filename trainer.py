@@ -48,9 +48,11 @@ class Trainer():
                 num_batch = batch+1
             
 
-            if epoch % 5 == 0:
+            if epoch % 1 == 0:
                 ## shuffle evaluate ??
                 test_score  = self.cal_score(test_dataset)
+                test_score2 = self.evaluate(test_dataset)
+
                 train_score = self.cal_score(train_dataset)
                 
 
@@ -64,7 +66,7 @@ class Trainer():
                     f.write(str(test_score))
                     f.write('\n')
 
-                print(f"\nEpoch {epoch} -- train loss: {train_score[0]} -- test loss: {test_score[0]} -- train acc: {train_score[1]} -- test acc: {test_score[1]}\n")
+                print(f"\nEpoch {epoch} -- train loss: {train_score[0]} -- test loss: {test_score[0]} -- train acc: {train_score[1]} -- test acc: {test_score[1]}-- test2: {test_score2[1]}\n")
 
                 # saving the last
                 self.saving(train_dataset, epoch)
@@ -118,7 +120,7 @@ class Trainer():
         
     def load(self, epoch):
         try:
-            filename = self.save_model_path+str(epoch)+'.pt'
+            filename = self.save_model_path
             
             checkpoint = torch.load(filename)
             
@@ -150,12 +152,9 @@ class Trainer():
                             target_tensor.view(-1))
 
             test_loss += loss.item()
-
-            prediction = prediction.cpu().numpy()
-            target_numpy = target_tensor.cpu().numpy()
-
-            for i in range (prediction.shape[0]):
-                cnf_matrix[target_numpy[i], prediction[i]] += 1
+            
+            for t, p in zip(target_tensor.view(-1), prediction.view(-1)):
+                cnf_matrix[t.cpu().long(), p.cpu().long()] += 1
 
         test_loss /= b
         accuracy = np.diagonal(cnf_matrix).sum()/cnf_matrix.sum()

@@ -13,13 +13,19 @@ class RNNModel(nn.Module):
         self.output_size = output_size
         self.embedding_size = embedding_size
 
+
         self.embedding = nn.Embedding(num_embeddings=vocab_size,
                                       embedding_dim=embedding_size)
 
         self.rnn = nn.RNN(embedding_size, hidden_dim,
                           n_layers, batch_first=True)
 
-        self.fc = nn.Linear(hidden_dim, output_size)
+        self.fc = nn.Sequential( 
+            nn.Linear(hidden_dim, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, output_size)
+        )
+
         self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, x, hidden):
