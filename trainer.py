@@ -51,7 +51,6 @@ class Trainer():
             if epoch % 1 == 0:
                 ## shuffle evaluate ??
                 test_score  = self.cal_score(test_dataset)
-                test_score2 = self.evaluate(test_dataset)
 
                 train_score = self.cal_score(train_dataset)
                 
@@ -66,7 +65,7 @@ class Trainer():
                     f.write(str(test_score))
                     f.write('\n')
 
-                print(f"\nEpoch {epoch} -- train loss: {train_score[0]} -- test loss: {test_score[0]} -- train acc: {train_score[1]} -- test acc: {test_score[1]}-- test2: {test_score2[1]}\n")
+                print(f"\nEpoch {epoch} -- train loss: {train_score[0]} -- test loss: {test_score[0]} -- train acc: {train_score[1]} -- test acc: {test_score[1]}\n")
 
                 # saving the last
                 self.saving(train_dataset, epoch)
@@ -136,7 +135,7 @@ class Trainer():
         self.model.eval()
         test_loss = 0.
         batch_size = 64
-        hidden = self.model.init_hidden(batch_size)
+        hidden = self.model.init_hidden(batch_size).to(self.device)
 
         cnf_matrix = np.zeros((4, 4))
         b = 0
