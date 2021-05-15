@@ -1,3 +1,4 @@
+from typing import Counter
 import numpy as np
 from keras.preprocessing import sequence
 from nltk.corpus import gutenberg
@@ -5,6 +6,8 @@ from string import punctuation
 import nltk
 from underthesea import word_tokenize
 from collections import defaultdict
+
+from underthesea.word_tokenize.regex_tokenize import tokenize
 
 def count_comma(sent):
     return sent.count(",")
@@ -84,15 +87,44 @@ def create_label(text):
     in_text = '<fff>'.join(words)
     return in_text, label
 
+def create_vocab(texts):
+    freq = Counter()
+    for text in texts:
+        tokens = word_tokenize(text)
+        freq.update(tokens)
+    most_5k = freq.most_common(5000)
+    most_5k = [ele[0] for ele in most_5k]
+    most_5k = ['unk'] + most_5k
+
+    with open("./demo_data/vocab.txt", 'w') as f:
+        for ele in most_5k:
+            f.write(ele)
+            f.write('\n')
+        
+
+    news = []
+    for text in texts:
+        tokens = word_tokenize(text)
+        new = []
+        for token in tokens:
+            if token not in most_5k:
+                new.append("unk")
+            else:
+                new.append(token)
+        if new.count("unk") > 5:
+            continue
+        news.append(" ".join(new))
+    return news
 
 
-def preprocessing_train_data(RAW_PATH = './data/Data_byADuc.txt', IN_TEXT_PATH = './demo_data/text.txt', LABEL_PATH = './demo_data/label.txt'):
+def preprocessing_train_data(RAW_PATH = './demo_data/mid_text.txt', IN_TEXT_PATH = './demo_data/fixtext.txt', LABEL_PATH = './demo_data/fixlabel.txt'):
     # start processing
     with open(RAW_PATH, 'r') as f:
         lines = f.read().splitlines()
 
 
-    lines = cleaning(lines[:100000])
+    lines = cleaning(lines[:1000])
+    lines = create_vocab(lines)
     texts, labels = [], []
     for text in lines:
         in_text, label = create_label(text)

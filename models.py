@@ -18,7 +18,7 @@ class RNNModel(nn.Module):
                                       embedding_dim=embedding_size)
 
         self.rnn = nn.RNN(embedding_size, hidden_dim,
-                          n_layers, batch_first=True)
+                          n_layers, batch_first=True, dropout=0.5)
 
         self.fc = nn.Sequential( 
             nn.Linear(hidden_dim, 1024),
@@ -96,7 +96,7 @@ class BiLSTMModel(nn.Module):
                                       embedding_dim=embedding_size)
 
         self.bilstm = nn.LSTM(embedding_size, hidden_dim,
-                              n_layers, batch_first=True, bidirectional=bidirectional)
+                              n_layers, batch_first=True, bidirectional=bidirectional, dropout=0.33)
 
         self.fc = nn.Linear(
             hidden_dim*2 if bidirectional else hidden_dim, output_size)
@@ -106,7 +106,7 @@ class BiLSTMModel(nn.Module):
         embedded = self.embedding(x)
 
         output, hidden = self.bilstm(embedded, hidden)
-
+        
         output = self.fc(output)
         prob = self.softmax(output)
 
@@ -114,9 +114,9 @@ class BiLSTMModel(nn.Module):
 
     def init_hidden(self, batch_size):
 
-        #hidden = [torch.zeros(
-        #    self.n_layers*2 if self.bidirectional else self.n_layers, batch_size, self.hidden_dim)]*2
+        hidden = [torch.zeros(
+           self.n_layers*2 if self.bidirectional else self.n_layers, batch_size, self.hidden_dim)]*2
 
-        hidden = torch.zeros(
-            2, self.n_layers*2 if self.bidirectional else self.n_layers, batch_size, self.hidden_dim)
+        # hidden = torch.zeros(
+        #     2, self.n_layers*2 if self.bidirectional else self.n_layers, batch_size, self.hidden_dim)
         return hidden

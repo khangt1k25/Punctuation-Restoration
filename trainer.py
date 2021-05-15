@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 import numpy as np
-from torch.utils.tensorboard import SummaryWriter
 from datasets import dataset_batch_iter
 
 nll_loss = nn.NLLLoss()
@@ -21,22 +20,30 @@ class Trainer():
         #self.writer = SummaryWriter(log_dir=name_log_dir)
 
     def train(self, train_dataset, test_dataset, batch_size, start_epoch, end_epoch):
-
+        self.model.train()
         # training
         for epoch in range(start_epoch, end_epoch+1):
-            self.model.train()
-            hidden = self.model.init_hidden(batch_size).to(self.device)
+            
+            hidden = self.model.init_hidden(batch_size)
             train_loss = 0.
             num_batch = 0
             for batch, data in enumerate(dataset_batch_iter(train_dataset, batch_size)):
-                
                 input_tensor = torch.Tensor(data['data']).type(torch.LongTensor).to(self.device)
                 target_tensor = torch.Tensor(data['label']).type(torch.LongTensor).to(self.device) 
                 
+
+
                 output, hidden = self.model(input_tensor, hidden)
                 
+                # print(output.shape)
+                # print(len(hidden))
+                # print(hidden[0].shape)
+                # hidden = [
+                #     Variable(hidden[0].data, requires_grad=True).to(self.device),
+                #     Variable(hidden[1].data, requires_grad=True).to(self.device)
+                # ]
                 hidden = Variable(hidden.data, requires_grad=True).to(self.device)
-                
+
                 loss = nll_loss(output.view(-1, self.num_categories),
                                 target_tensor.view(-1))
                 
@@ -50,9 +57,9 @@ class Trainer():
 
             if epoch % 1 == 0:
                 ## shuffle evaluate ??
-                test_score  = self.cal_score(test_dataset)
+                test_score  = self.evaluate(test_dataset)
 
-                train_score = self.cal_score(train_dataset)
+                train_score = self.evaluate(train_dataset)
                 
 
                 # self.writer.add_scalars('Loss',{"train_loss": train_loss, "test_loss": test_loss}, epoch)
@@ -95,11 +102,12 @@ class Trainer():
         correct = 0
       
         for batch, data in enumerate(dataset_batch_iter(valid_dataset, batch_size)):
-    
+            
             input_tensor = torch.Tensor(data['data']).type(torch.LongTensor).to(self.device)
             target_tensor = torch.Tensor(data['label']).type(torch.LongTensor).to(self.device)
 
             output, hidden = self.model(input_tensor, hidden)
+            hidden = Variable(hidden.data, requires_grad=True).to(self.device)
             prediction = output.argmax(dim=-1)
 
             loss = nll_loss(output.view(-1, self.num_categories),
@@ -114,6 +122,7 @@ class Trainer():
 
         #print("batch=", batch)
         accuracy = correct/(batch_size*length*(batch+1))
+        test_loss = test_loss/(length*(batch+1))
 
         return test_loss, accuracy
         
@@ -134,13 +143,14 @@ class Trainer():
     def cal_score(self, valid_dataset):
         self.model.eval()
         test_loss = 0.
-        batch_size = 64
-        hidden = self.model.init_hidden(batch_size).to(self.device)
+        batch_size = 32
+        hidden = self.model.init_hidden(batch_size)
 
         cnf_matrix = np.zeros((4, 4))
         b = 0
         for batch, data in enumerate(dataset_batch_iter(valid_dataset, batch_size)):
             b+=1
+            
             input_tensor = torch.tensor(data['data']).type(torch.LongTensor).to(self.device)
             target_tensor = torch.tensor(data['label']).type(torch.LongTensor).to(self.device)
 

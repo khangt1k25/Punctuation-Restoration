@@ -14,14 +14,14 @@ from sklearn.metrics import multilabel_confusion_matrix
 parser = argparse.ArgumentParser()
 ## config for model
 parser.add_argument('--model', type=str, default='RNN', help="RNN or GRU architecture")  # change it GRU or BiLSTM
-parser.add_argument('--n_layer', type=int, default=1, help="Num layers of architecture")
-parser.add_argument('--embedding_size', type=int, default=256, help="Embedding size of a word")  
-parser.add_argument('--hidden_dim', type=int, default=512, help="hidden dim state of block RNN") 
+parser.add_argument('--n_layer', type=int, default=2, help="Num layers of architecture")
+parser.add_argument('--embedding_size', type=int, default=512, help="Embedding size of a word")  
+parser.add_argument('--hidden_dim', type=int, default=256, help="hidden dim state of block RNN") 
 parser.add_argument('--output_dim', type=int, default=4, help="output head dim (4 for 0, 1, 2, 3)") # do not change
 
 ## config for dataset
-parser.add_argument('--train_text_path', type=str, default='./demo_data/demo_text.txt', help='train text path')
-parser.add_argument('--train_label_path', type=str, default='./demo_data/demo_label.txt', help='train label path')
+parser.add_argument('--train_text_path', type=str, default='./demo_data/fixtext.txt', help='train text path')
+parser.add_argument('--train_label_path', type=str, default='./demo_data/fixlabel.txt', help='train label path')
 parser.add_argument('--valid_text_path', type=str, default='./demo_data/testtext.txt', help='valid text path')
 parser.add_argument('--valid_label_path', type=str, default='./demo_data/testlabel.txt', help='valid label path')
 parser.add_argument('--length', type=int, default=32, help='max length of a sentence')       
@@ -34,7 +34,7 @@ parser.add_argument('--betas', type=tuple, default=(0.9, 0.999), help='betas')
 
 ## config for running
 
-parser.add_argument('--batch_size', type=int, default=64, help='Batch size training')
+parser.add_argument('--batch_size', type=int, default=32, help='Batch size training')
 parser.add_argument('--saved_model_path', type=str, default='./dumps/', help='saved model path')
 parser.add_argument('--logs_path', type=str, default='./logs', help='logs dir save score')
 
@@ -87,7 +87,7 @@ if __name__ == '__main__':
         save_model_path=opt.saved_model_path+opt.model+'.pt',
         log_path=opt.logs_path
     )
-    #print(train_dataset.vocab_size)
+    print(train_dataset.vocab_size)
 
     #trainer.load(10)
     trainer.train(train_dataset, test_dataset, opt.batch_size, start_epoch=1, end_epoch=500)

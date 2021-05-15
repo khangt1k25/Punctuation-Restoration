@@ -26,6 +26,7 @@ class MyDataset(Dataset):
                     i += 1
         self.word2id['<pad>'] = 0
         self.id2word = {v: k for (k, v) in self.word2id.items()}
+        
 
         self.vocab_size = len(self.word2id)
 
@@ -64,7 +65,7 @@ class TestDataset(Dataset):
 
         self.sents = [sent.split('<fff>') for sent in sents]
 
-        self.sents = [[self.word2id[word] if word in self.word2id else 0 for word in sent] for sent in self.sents]
+        self.sents = [[self.word2id[word] if word in self.word2id else self.word2id['unk'] for word in sent] for sent in self.sents]
 
         self.sents = sequence.pad_sequences(
             self.sents, maxlen=self.length, padding="post")
