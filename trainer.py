@@ -57,9 +57,9 @@ class Trainer():
 
             if epoch % 1 == 0:
                 ## shuffle evaluate ??
-                test_score  = self.evaluate(test_dataset)
+                test_score  = self.cal_score(test_dataset)
 
-                train_score = self.evaluate(train_dataset)
+                train_score = self.cal_score(train_dataset)
                 
 
                 # self.writer.add_scalars('Loss',{"train_loss": train_loss, "test_loss": test_loss}, epoch)

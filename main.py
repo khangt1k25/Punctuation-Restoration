@@ -89,11 +89,8 @@ if __name__ == '__main__':
     )
     print(train_dataset.vocab_size)
 
-    #trainer.load(10)
-    trainer.train(train_dataset, test_dataset, opt.batch_size, start_epoch=1, end_epoch=500)
 
-    # hoang_score = trainer.cal_score(train_dataset)
-    # hoang_test_score = trainer.cal_score(test_dataset)
-    # print(hoang_score)
-    # print(hoang_test_score)
+    trainer.train(train_dataset, test_dataset, opt.batch_size, start_epoch=1, end_epoch=100)
+
+
         

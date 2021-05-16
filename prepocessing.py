@@ -56,7 +56,9 @@ def cleaning(raw_texts):
         if count_comma(sent) >= 2:
             if count_word(sent) >= 20 and count_word(sent) <= 50:
                 sent = word_tokenize(sent)
+                sent = [ele.lower() for ele in sent]
                 sent = ' '.join(sent)
+                sent = re.sub(r"\d+", "num", sent)  
                 sent = sent+'\n'
                 data.append(sent)
     return data
@@ -87,12 +89,14 @@ def create_label(text):
     in_text = '<fff>'.join(words)
     return in_text, label
 
-def create_vocab(texts):
+
+
+def create_vocab(texts, topk):
     freq = Counter()
     for text in texts:
         tokens = word_tokenize(text)
         freq.update(tokens)
-    most_5k = freq.most_common(5000)
+    most_5k = freq.most_common(topk)
     most_5k = [ele[0] for ele in most_5k]
     most_5k = ['unk'] + most_5k
 
@@ -124,7 +128,7 @@ def preprocessing_train_data(RAW_PATH = './demo_data/mid_text.txt', IN_TEXT_PATH
 
 
     lines = cleaning(lines[:1000])
-    lines = create_vocab(lines)
+    lines = create_vocab(lines, topk=5000)
     texts, labels = [], []
     for text in lines:
         in_text, label = create_label(text)

@@ -96,7 +96,7 @@ class BiLSTMModel(nn.Module):
                                       embedding_dim=embedding_size)
 
         self.bilstm = nn.LSTM(embedding_size, hidden_dim,
-                              n_layers, batch_first=True, bidirectional=bidirectional, dropout=0.33)
+                              n_layers, batch_first=True, bidirectional=bidirectional, dropout=0.2)
 
         self.fc = nn.Linear(
             hidden_dim*2 if bidirectional else hidden_dim, output_size)
