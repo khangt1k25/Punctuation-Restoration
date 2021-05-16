@@ -127,7 +127,7 @@ def preprocessing_train_data(RAW_PATH = './demo_data/mid_text.txt', IN_TEXT_PATH
         lines = f.read().splitlines()
 
 
-    lines = cleaning(lines[:1000])
+    lines = cleaning(lines)
     lines = create_vocab(lines, topk=5000)
     texts, labels = [], []
     for text in lines:
