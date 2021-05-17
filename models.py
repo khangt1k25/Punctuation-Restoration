@@ -61,7 +61,12 @@ class GRUModel(nn.Module):
         self.gru = nn.RNN(embedding_size, hidden_dim,
                           n_layers, batch_first=True)
 
-        self.fc = nn.Linear(hidden_dim, output_size)
+        self.fc = nn.Sequential( 
+            nn.Linear(hidden_dim, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, output_size)
+        )
+
         self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, x, hidden):
@@ -98,8 +103,13 @@ class BiLSTMModel(nn.Module):
         self.bilstm = nn.LSTM(embedding_size, hidden_dim,
                               n_layers, batch_first=True, bidirectional=bidirectional, dropout=0.2)
 
-        self.fc = nn.Linear(
-            hidden_dim*2 if bidirectional else hidden_dim, output_size)
+
+        self.fc = nn.Sequential( 
+            nn.Linear(hidden_dim*2 if bidirectional else hidden_dim, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, output_size)
+        )
+
         self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, x, hidden):
