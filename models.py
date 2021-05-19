@@ -37,7 +37,7 @@ class RNNModel(nn.Module):
         prob = self.softmax(output)
 
         return prob, hidden
-
+    
     def init_hidden(self, batch_size):
 
         hidden = torch.zeros(self.n_layers, batch_size, self.hidden_dim)
@@ -59,7 +59,7 @@ class GRUModel(nn.Module):
                                       embedding_dim=embedding_size)
 
         self.gru = nn.RNN(embedding_size, hidden_dim,
-                          n_layers, batch_first=True)
+                          n_layers, batch_first=True, dropout=0.3)
 
         self.fc = nn.Sequential( 
             nn.Linear(hidden_dim, 1024),
@@ -101,7 +101,7 @@ class BiLSTMModel(nn.Module):
                                       embedding_dim=embedding_size)
 
         self.bilstm = nn.LSTM(embedding_size, hidden_dim,
-                              n_layers, batch_first=True, bidirectional=bidirectional, dropout=0.2)
+                              n_layers, batch_first=True, bidirectional=bidirectional, dropout=0.3)
 
 
         self.fc = nn.Sequential( 
@@ -111,6 +111,9 @@ class BiLSTMModel(nn.Module):
         )
 
         self.softmax = nn.LogSoftmax(dim=1)
+    
+    # def getembedding(self, x):
+    #     return self.embedding(x)
 
     def forward(self, x, hidden):
         embedded = self.embedding(x)

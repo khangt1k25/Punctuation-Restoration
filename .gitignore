@@ -11,6 +11,7 @@ demo_data/*
 my_runs/*
 logs/*
 score/*
+logs32/*
 # C extensions
 *.so
 

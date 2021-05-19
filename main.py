@@ -13,7 +13,7 @@ from sklearn.metrics import multilabel_confusion_matrix
 
 parser = argparse.ArgumentParser()
 ## config for model
-parser.add_argument('--model', type=str, default='RNN', help="RNN or GRU architecture")  # change it GRU or BiLSTM
+parser.add_argument('--model', type=str, default='BiLSTM', help="RNN or GRU architecture")  # change it GRU or BiLSTM
 parser.add_argument('--n_layer', type=int, default=2, help="Num layers of architecture")
 parser.add_argument('--embedding_size', type=int, default=512, help="Embedding size of a word")  
 parser.add_argument('--hidden_dim', type=int, default=256, help="hidden dim state of block RNN") 
@@ -88,9 +88,8 @@ if __name__ == '__main__':
         log_path=opt.logs_path
     )
     print(train_dataset.vocab_size)
-
+    vocab_size = train_dataset.vocab_size
 
     trainer.train(train_dataset, test_dataset, opt.batch_size, start_epoch=1, end_epoch=100)
-
-
-        
+    
+    
