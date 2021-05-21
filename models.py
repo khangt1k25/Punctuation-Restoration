@@ -18,7 +18,7 @@ class RNNModel(nn.Module):
                                       embedding_dim=embedding_size)
 
         self.rnn = nn.RNN(embedding_size, hidden_dim,
-                          n_layers, batch_first=True, dropout=0.5)
+                          n_layers, batch_first=True, dropout=0)
 
         self.fc = nn.Sequential( 
             nn.Linear(hidden_dim, 1024),
@@ -58,8 +58,8 @@ class GRUModel(nn.Module):
         self.embedding = nn.Embedding(num_embeddings=vocab_size,
                                       embedding_dim=embedding_size)
 
-        self.gru = nn.RNN(embedding_size, hidden_dim,
-                          n_layers, batch_first=True, dropout=0.3)
+        self.gru = nn.GRU(embedding_size, hidden_dim,
+                          n_layers, batch_first=True, dropout=0)
 
         self.fc = nn.Sequential( 
             nn.Linear(hidden_dim, 1024),
