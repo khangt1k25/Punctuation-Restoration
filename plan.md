@@ -13,7 +13,3 @@
 
 2. update:
 
-RNN 0 (da co')
-RNN 0.3
-GRU 0
-GRU 0.3

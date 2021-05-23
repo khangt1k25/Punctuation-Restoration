@@ -6,7 +6,7 @@ from string import punctuation
 import nltk
 from underthesea import word_tokenize
 from collections import defaultdict
-
+import re
 from underthesea.word_tokenize.regex_tokenize import tokenize
 
 def count_comma(sent):
