@@ -63,7 +63,53 @@ def cleaning(raw_texts):
                 data.append(sent)
     return data
 
-
+def cleaning_test(raw_texts):
+    '''
+    Clean other punct, and other simple processs
+    '''
+    data = []
+    for sent in raw_texts:
+        sent = sent.replace('\n','')
+        sent = sent.replace(':',',')
+        sent = sent.replace('!','.')
+        sent = sent.replace('?','.')
+        sent = sent.replace(';',',')
+        sent = sent.replace('"','')
+        sent = sent.replace(')','')
+        sent = sent.replace('(','')
+        sent = sent.replace('“','')
+        sent = sent.replace('”','')
+        sent = sent.replace('-','')
+        sent = sent.replace('_','')
+        sent = sent.replace('+','')
+        sent = sent.replace('=','')
+        sent = sent.replace('[','')
+        sent = sent.replace(']','')
+        sent = sent.replace('{','')
+        sent = sent.replace('}','')
+        sent = sent.replace('*','')
+        sent = sent.replace('&','')
+        sent = sent.replace('^','')
+        sent = sent.replace('%','')
+        sent = sent.replace('$','')
+        sent = sent.replace('#','')
+        sent = sent.replace('@','')
+        sent = sent.replace('!','')
+        sent = sent.replace('`','')
+        sent = sent.replace('~','')
+        sent = sent.replace('/','')
+        sent = sent.replace('|','')
+        sent = sent.replace('…','')
+        sent = sent.replace(',.','')
+       
+        sent = word_tokenize(sent)
+        sent = [ele.lower() for ele in sent]
+        sent = ' '.join(sent)
+        sent = re.sub(r"\d+", "num", sent)  
+        sent = sent+'\n'
+        data.append(sent)
+    
+    return data
 
 def create_label(text):
 
@@ -149,5 +195,5 @@ def preprocessing_train_data(RAW_PATH = './demo_data/mid_text.txt', IN_TEXT_PATH
             f.write('\n')
 
 
-
-preprocessing_train_data()
+if __name__ == '__main__':
+    preprocessing_train_data()

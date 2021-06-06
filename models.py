@@ -44,6 +44,11 @@ class RNNModel(nn.Module):
         return hidden
 
 
+
+
+
+
+
 class GRUModel(nn.Module):
     def __init__(self, vocab_size, embedding_size, output_size,
                  hidden_dim, n_layers):
@@ -125,3 +130,44 @@ class BiLSTMModel(nn.Module):
         # hidden = torch.zeros(
         #     2, self.n_layers*2 if self.bidirectional else self.n_layers, batch_size, self.hidden_dim)
         return hidden
+
+
+class MLP_Head(nn.Module):
+    def __init__(self, input_dim=512, hidden_dim=256, output_dim=4):
+        super(MLP_Head, self).__init__()
+        self.net = nn.Sequential( 
+                nn.Linear(input_dim, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, output_dim)
+        )
+        self.softmax = nn.LogSoftmax(dim=-1)
+
+  
+    def forward(self, x):
+        logits = self.net(x)
+        return self.softmax(logits)
+
+class My_BertBase_Model(nn.Module):
+    def __init__(self, bert, rnn, head, device):
+        super(My_BertBase_Model, self).__init__()
+
+        self.bert = bert.to(device)
+        self.rnn = rnn.to(device)
+        self.head = head.to(device)
+
+        for param in self.bert.parameters():
+            param.requires_grad = False
+
+    def forward(self, x):
+
+        features = self.bert(x)
+        #print(features)
+        #hidden, pool = features['last_hidden_state'], features['pooler_output']
+        hidden , pool = features[0], features[1]
+
+        feat, _ = self.rnn(hidden)
+
+
+        output = self.head(feat)
+
+        return output  

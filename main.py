@@ -87,7 +87,7 @@ if __name__ == '__main__':
         save_model_path=opt.saved_model_path+opt.model+'.pt',
         log_path=opt.logs_path
     )
-    print(train_dataset.vocab_size)
+
     vocab_size = train_dataset.vocab_size
 
     trainer.train(train_dataset, test_dataset, opt.batch_size, start_epoch=1, end_epoch=100)

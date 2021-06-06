@@ -12,6 +12,8 @@ my_runs/*
 logs/*
 score/*
 logs32/*
+visualize.ipynb
+result-bert.md
 # C extensions
 *.so
 

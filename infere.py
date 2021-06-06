@@ -18,7 +18,7 @@ embedding_size = 512
 hidden_dim = 256
 n_layers = 2
 num_categories = 4
-MODEL_PATH = './BiLSTM.pt'
+MODEL_PATH = './dumps/BiLSTM.pt'
 
 checkpoint = torch.load(MODEL_PATH, map_location=device)
 id2word = checkpoint['id2word']
@@ -37,41 +37,41 @@ def infere(model, input_tensor):
     prediction = output.argmax(dim=-1)
     return prediction
 
-convert = {0: '', 1: ',', 2: '.', 3: ''}
-def restore(tokens, punct):
-    seq = [id2word[token]+convert[punct[i]] for i, token in enumerate(tokens)]
+
+def restore(words, prediction):
+    convert = {0: '', 1: ',', 2: '.', 3: ''}
+    seq = [ word+convert[prediction[i]] for i, word in enumerate(words)]
     seq = ' '.join(seq)
     return seq
 
-
-if __name__ == "__main__":
     
 
 
-    sentence = ["Sau khi được đào tạo ở Thuỵ Sĩ , cô làm việc ở Pháp với tư cách là một đầu bếp , nơi cô được cố vấn bởi Anthony Leboube ."]
+def pipleline(sentence):
+    sentence = [sentence]
 
-    cleaned = cleaning(sentence)[0]
+    cleaned = cleaning_test(sentence)[0]
     
     
     in_text, label = create_label(cleaned)
+    words = in_text.split("<fff>")
 
-    tokens = in_text.split("<fff>")
 
-    print(tokens)
-    
-    tokens = [word2id[word] if word in word2id else word2id['unk'] for word in tokens]
+    tokens = [word2id[word] if word in word2id else word2id['unk'] for word in words]
     tokens = sequence.pad_sequences([tokens], maxlen=length, padding='post')[0]
 
     label = [int(ele) for ele in label]
     label = sequence.pad_sequences([label], maxlen=length, padding="post", value=3)[0]
 
-    
-    print(label)
-    print(tokens)
 
     input_tensor = torch.Tensor([tokens]).long().to(device)
     prediction = infere(model, input_tensor)
     prediction = prediction.cpu().view(-1).numpy()
-    res = restore(tokens, prediction)
+    res = restore(words, prediction)
 
-    print(res)
+    return res
+
+    
+
+ 
+    
