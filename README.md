@@ -1,7 +1,13 @@
 ## Punctuation Restoration for Vietnamese
 
-Our Implementation of seq2punct. Our problem is restoring missing puncts of  Vietnamese sentences.
+Our Implementation of seq2punct. Our problem is restoring missing puncts in Vietnamese sentences.
 We consider this problem with [just comma and period]. 
+
+## Framework in project 
+* Python3
+* Pytorch
+* Flask
+* Matplotlib 
 
 
 ## Result
@@ -12,25 +18,25 @@ We consider this problem with [just comma and period].
 
 ![alt text](./fig/demo4.png "demo4")
 
-## Dataset
+## Dataset format 
+
 Input: Seq of words
 
 Output: Seq of punct
 
 Ex: Text "Một đêm nọ tôi nằm mơ thấy em "  has the label: " 0  1  0  0  0  0  0  2" with [0, 1, 2] denotes space, comma, period respectively. 
 
-You can download from  ...
+You can download preprocessed data in: https://drive.google.com/drive/u/2/folders/1NfpLGRQAJPlURQa-3G6RFR2cKd1KKavt?fbclid=IwAR1-JV8NOTNGcbVtj7BkUbtNTAixxhisg4y1-qqeeOjzZAwaGcUlzAk3jtg
 
-## Using 
+## For using  
 * Clone this repo
 * Pip install requirements
 * Create dumps/ folder for saving model checkpoint
-
+* You can download pretrained model in:  https://drive.google.com/drive/folders/1pKeP6YGsYveJNiAhl9O8vdG_OAoIx1Gk?usp=sharing
+  
 ## Train
 
-We followed seq2seq architecture. The test accuracy is ~85-90%.  
-
-To train
+To train by yourselft
 ```
 python main.py --model [RNN] --n_layers [2] -- embedding_size [256] --hidden_dim [256]
 
@@ -39,7 +45,7 @@ python main.py --model [RNN] --n_layers [2] -- embedding_size [256] --hidden_dim
 ## Inference 
 
 
-To infere
+To infere: Change the path to pretrained model and run command 
 
 ```
 from infere import pipeline
@@ -51,7 +57,7 @@ res = pipeline(text)
 ```
 
 
-## Using bert 
+## Inference with bert 
 We use pretrained phobert to extract the features of text, then add RNN and MLP to classify punct. The result ~ 95% accuracy
 
 
@@ -59,7 +65,7 @@ Train with training_bert.ipynb
 Infere with infere_bert.py
 
 
-## Demo with flask
+## Run demo with flask
 ```
 python app.py
 ```
